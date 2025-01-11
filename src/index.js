@@ -6,7 +6,7 @@ const conectDB = require('./config/db_mongo');
 const PORT = config.port;
 const URI_DB = config.uri_db;
 
-const routerTask = require('./routes/route.tasks');
+const apiRouter = require('./routes/route.api');
 
 const app  = express();
 
@@ -15,10 +15,12 @@ app.use(express.json());
 app.use(cors());
 
 // Router
-app.use('/api/tasks',routerTask);
+app.use('/api',apiRouter);
 
 app.get('/', (req, res) => {
-  res.send('Hello World!')
+  return res.status(200).json({
+    mensaje: 'Hello Word! Test Run!'
+  });
 })
 
 app.listen(PORT, () => {
