@@ -4,12 +4,12 @@ const { tasksSchemaValidator, updateTaskSchema } = require('../validators/valida
 exports.getTasks = async (req, res) => {
     try {
         const tasks = await Task.find();
-        res.status(200).json({
+        return res.status(200).json({
             mensaje: 'Lista de tareas obtenida correctamente',
             data: tasks,
         });
     } catch (error) {
-        res.status(500).json({
+        return res.status(500).json({
             mensaje: 'Error al obtener las tareas',
             error: error.message,
         });
@@ -38,12 +38,12 @@ exports.addTask = async (req, res) => {
         const newTask = new Task({ text, done, date });
         await newTask.save();
 
-        res.status(201).json({
+        return res.status(201).json({
             mensaje: 'Tarea creada correctamente',
             data: newTask,
         });
     } catch (error) {
-        res.status(500).json({
+        return res.status(500).json({
             mensaje: 'Error al crear la tarea',
             error: error.message,
         });
@@ -74,12 +74,12 @@ exports.updateTask = async (req, res) => {
             });
         }
 
-        res.status(200).json({
+        return res.status(200).json({
             mensaje: 'Tarea actualizada correctamente',
             data: updatedTask,
         });
     } catch (error) {
-        res.status(500).json({
+        return res.status(500).json({
             mensaje: 'Error al actualizar la tarea',
             error: error.message,
         });
@@ -98,12 +98,12 @@ exports.deleteTask = async (req, res) => {
             });
         }
 
-        res.status(200).json({
+        return res.status(200).json({
             mensaje: 'Tarea eliminada correctamente',
             data: deletedTask,
         });
     } catch (error) {
-        res.status(500).json({
+        return res.status(500).json({
             mensaje: 'Error al eliminar la tarea',
             error: error.message,
         });
