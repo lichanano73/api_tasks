@@ -10,23 +10,25 @@ const userSchema = new Schema(
             unique: true,
             match: [/.+@.+\..+/, 'Por favor, ingrese un correo electrónico válido'],
         },
-        rol: { 
-            type: String, 
-            required: true, 
-            enum: ['admin', 'user'], 
-            default: 'user'
+        rol: {  type: String,  required: true, 
+            enum: ['admin', 'user'],  default: 'user'
         },
-        password: { 
-            type: String, 
-            required: true, 
-            minlength: 6
-        },
+        password: { type: String, required: true, minlength: 6, select: false }
     },
     {
         versionKey: false,
         timestamps: true,
     }
 );
+
+// Excluir timestamps
+userSchema.set('toJSON', {
+    transform: (doc, ret) => {
+        delete ret.createdAt;
+        delete ret.updatedAt;
+        return ret;
+    },
+});
 
 const User = model('User', userSchema);
 

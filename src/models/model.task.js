@@ -1,10 +1,11 @@
 const { model, Schema } = require('mongoose');
 
 const partHoursSchema = new Schema({
-    user: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Referencia usuario que cargó horas
+    user: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // usuario creador
     date: { type: Date, required: true },
     description: { type: String, required: true },
-}, { _id: false }); // Deshabilitamos _id para subdocumentos
+    duration: { type: String, required: true },
+}, { _id: false });
 
 const tasksSchema = new Schema(
     {

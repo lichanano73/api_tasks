@@ -9,10 +9,14 @@ exports.usersSchemaValidator = z.object({
 });
 
 
-exports.usersSchemaValidator = z.object({
+exports.usersUpdateValidator = z.object({
     name: z.string().min(1, 'El nombre es obligatorio'),
     username: z.string().min(1, 'El nombre de usuario es obligatorio'),
     email: z.string().email('Debe ser un correo electrónico válido'),
     rol: z.string().min(1, 'El rol es obligatorio')
 });
 
+exports.usersLoginValidator = z.object({
+    username: z.string().min(1, 'El nombre de usuario es obligatorio'),
+    password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
+});

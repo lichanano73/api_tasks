@@ -1,9 +1,8 @@
 const Task = require("../models/model.task");
 const User = require("../models/model.user");
 const {
-    tasksSchemaValidator,
-    updateTaskSchema,
-    assignUsersSchema,
+    tasksSchemaValidator, updateTaskSchema,
+    assignUsersSchema, addPartHoursSchema 
 } = require("../validators/validators.task");
 
 exports.getTasks = async (req, res) => {
@@ -121,30 +120,76 @@ exports.assignUsersToTask = async (req, res) => {
 exports.addPartHours = async (req, res) => {
     try {
         const { id } = req.params;
-        const { date, description } = req.body;
         const user = req.user._id;
-
-        const task = await Task.findById(id);
-
-        if (!task) return res.status(404).json({ error: "Tarea no encontrada" });
-
-        if (!task.assigned_users.includes(user)) {
-            return res.status(403).json({
-                error: "No tienes permiso para cargar horas en esta tarea",
+        
+        const validation = addPartHoursSchema.safeParse(req.body);
+        if (!validation.success) {
+            return res.status(400).json({
+                error: 'Error de validación',
+                detalles: validation.error.issues,
             });
         }
 
-        // Add parte de horas
-        task.part_hours.push({ user, date, description });
+        const { date, description, duration } = validation.data;
+
+        // Buscar la tarea
+        const task = await Task.findById(id);
+        if (!task) return res.status(404).json({ error: 'Tarea no encontrada' });
+
+        // Verificar si el usuario está asignado a la tarea
+        if (!task.assigned_users.map(String).includes(user.toString())) {
+            return res.status(403).json({
+                error: 'No tienes permiso para cargar horas en esta tarea',
+            });
+        }
+
+        task.part_hours.push({ user, date, description, duration });
         await task.save();
 
         return res.status(200).json({
-            mensaje: "Parte de horas agregado correctamente",
+            mensaje: 'Parte de horas agregado correctamente',
             data: task,
         });
     } catch (error) {
         return res.status(500).json({
-            mensaje: "Error al agregar parte de horas",
+            mensaje: 'Error al agregar parte de horas',
+            error: error.message,
+        });
+    }
+};
+
+exports.getTasksByUserId = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                mensaje: "Usuario no encontrado",
+            });
+        }
+
+        // Buscar tareas asignadas al usuario
+        const tasks = await Task.find({
+            $or: [
+                { assigned_users: user._id }, 
+                { user_created:   user._id },
+            ],
+        }).populate("assigned_users user_created"); // Poblar referencias
+
+        if (!tasks.length) {
+            return res.status(404).json({
+                mensaje: "No se encontraron tareas asignadas a este usuario",
+            });
+        }
+
+        return res.status(200).json({
+            mensaje: `Tareas encontradas para el usuario con ID: ${userId}`,
+            data: tasks,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            mensaje: "Error al obtener las tareas",
             error: error.message,
         });
     }
@@ -185,39 +230,7 @@ exports.updateTask = async (req, res) => {
     }
 };
 
-exports.getTasksByUserId = async (req, res) => {
-    try {
-        const { userId } = req.params;
 
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({
-                mensaje: "Usuario no encontrado",
-            });
-        }
-
-        // Buscar tareas asignadas al usuario
-        const tasks = await Task.find({ assigned_users: user._id }).populate(
-            "assigned_users user_created"
-        );
-
-        if (!tasks.length) {
-            return res.status(404).json({
-                mensaje: "No se encontraron tareas asignadas a este usuario",
-            });
-        }
-
-        return res.status(200).json({
-            mensaje: `Tareas encontradas para el usuario con ID: ${userId}`,
-            data: tasks,
-        });
-    } catch (error) {
-        return res.status(500).json({
-            mensaje: "Error al obtener las tareas",
-            error: error.message,
-        });
-    }
-};
 
 exports.deleteTask = async (req, res) => {
     try {
