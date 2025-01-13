@@ -1,7 +1,9 @@
 const User = require('../models/model.user');
-const { usersSchemaValidator } = require('../validators/validators.user');
+const config = require('../config/config');
+const { usersSchemaValidator, usersUpdateValidator, usersLoginValidator } = require('../validators/validators.user');
 
 const bcryptjs = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 exports.getUsers = async (req, res) => {
     try {
@@ -76,12 +78,65 @@ exports.addUser = async (req, res) => {
     }
 };
 
+// Login 
+exports.loginUser = async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        
+        if (!username || !password) {
+            return res.status(400).json({
+                error: 'El username y la contraseña son obligatorios',
+            });
+        }
+
+        const validator = usersLoginValidator.safeParse(req.body);
+        if (!validator.success) {
+            return res.status(400).json({
+                error: 'Ocurrió un error al validar el Login',
+                details: validator.error.errors,
+            });
+        }
+        
+        const user = await User.findOne({ username });
+        if (!user) return res.status(401).json({ error: 'Username no encontrado' });
+
+        const passValid = bcryptjs.compareSync(password, user.password);
+        if (!passValid) return res.status(401).json({ error: 'Contraseña incorrecta' });
+
+        // jsonwebtoken
+        const token = jwt.sign(
+            {   id: user._id,       username: user.username, 
+                email: user.email,  rol: user.rol 
+            },
+            config.api_secret, 
+            { expiresIn: '6h' }
+        );
+        
+        return res.status(200).json({
+            mensaje: 'Login exitoso',
+            token,
+            data: {
+                id:       user._id,
+                name:     user.name,
+                username: user.username,
+                email:    user.email,
+                rol:      user.rol,
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({
+            mensaje: 'Error en el servidor',
+            error: error.message,
+        });
+    }
+};
+
 // Actualizar un usuario por ID
 exports.updateUser = async (req, res) => {
     try {
         const { id } = req.params;
         
-        const validator = usersSchemaValidator.safeParse(req.body);
+        const validator = usersUpdateValidator.safeParse(req.body);
         if (!validator.success) {
             return res.status(400).json({
                 error: 'Ocurrió un error al validar el esquema',
