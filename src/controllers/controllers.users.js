@@ -97,7 +97,8 @@ exports.loginUser = async (req, res) => {
             });
         }
         
-        const user = await User.findOne({ username });
+        const user = await User.findOne({ username }).select('+password');
+        console.log(user)
         if (!user) return res.status(401).json({ error: 'Username no encontrado' });
 
         const passValid = bcryptjs.compareSync(password, user.password);
