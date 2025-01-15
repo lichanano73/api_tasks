@@ -2,7 +2,7 @@ const Task = require("../models/model.task");
 const User = require("../models/model.user");
 const {
     tasksSchemaValidator, updateTaskSchema,
-    assignUsersSchema, addPartHoursSchema 
+    assignUsersSchema, addPartHoursSchema
 } = require("../validators/validators.task");
 
 exports.getTasks = async (req, res) => {
@@ -24,7 +24,7 @@ exports.addTask = async (req, res) => {
     try {
         const { text, company, done, date, description } = req.body;
 
-        if (!text || !company || !date || !date || !description) {
+        if (!text || !company || !date || !description) {
             return res.status(400).json({
                 error: "Todos los campos son obligatorios: text, done y date",
             });
@@ -32,8 +32,6 @@ exports.addTask = async (req, res) => {
 
         const user_created = req.user._id;
         const validator = tasksSchemaValidator.safeParse(req.body);
-
-        console.log(validator);
 
         if (!validator.success) {
             return res.status(400).json({
@@ -121,7 +119,7 @@ exports.addPartHours = async (req, res) => {
     try {
         const { id } = req.params;
         const user = req.user._id;
-        
+
         const validation = addPartHoursSchema.safeParse(req.body);
         if (!validation.success) {
             return res.status(400).json({
@@ -172,8 +170,8 @@ exports.getTasksByUserId = async (req, res) => {
         // Buscar tareas asignadas al usuario
         const tasks = await Task.find({
             $or: [
-                { assigned_users: user._id }, 
-                { user_created:   user._id },
+                { assigned_users: user._id },
+                { user_created: user._id },
             ],
         }).populate("assigned_users user_created"); // Poblar referencias
 
