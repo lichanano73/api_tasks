@@ -11,7 +11,7 @@ Este proyecto es un backend para un organizador de tareas desarrollado con Node.
 
 1. Clona el repositorio:
    ```bash
-   git clone <URL_DEL_REPOSITORIO>
+   git clone git@github.com:lichanano73/api_tasks.git
    ```
 
 2. Instala las dependencias:
